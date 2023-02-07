@@ -1,59 +1,81 @@
 <script>
-	import Counter from './Counter.svelte';
-	import welcome from '$lib/images/svelte-welcome.webp';
-	import welcome_fallback from '$lib/images/svelte-welcome.png';
+	import { goto } from "$app/navigation";
+	import { jwt, role } from './store.js';
+	import "./styles.css";
+	let username = "";
+	let password = "";
+	let jwtToken = "";
+	async function roleUser() {
+		try {
+			const response = await fetch('http://localhost:3000/users/me', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${$jwt}`
+				}
+			});
+			const data = await response.json();
+			role.set(data.role);
+			if (data) {
+				console.log("User logged in successfully");
+				// redirect the user to the dashboard or show a message
+			} else {
+				console.log("Invalid username or password");
+				// show an error message
+			}
+		} catch (error) {
+			console.error(error);
+		}
+	}
+	async function handleSubmit(event) {
+		event.preventDefault();
+		try {
+			const response = await fetch('http://localhost:3000/users/login', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ username, password })
+			});
+
+			const data = await response.json();
+			jwt.set(data.jwt)
+			await roleUser();
+			jwtToken=data.jwt;
+			if (data) {
+				goto("./locations")
+				console.log("User logged in successfully");
+				// redirect the user to the dashboard or show a message
+			} else {
+				console.log("Invalid username or password");
+				// show an error message
+			}
+		} catch (error) {
+			console.error(error);
+		}
+	}
+	function handleRegister() {
+		goto("./register");
+	}
 </script>
 
-<svelte:head>
-	<title>Home</title>
-	<meta name="description" content="Svelte demo app" />
-</svelte:head>
+<form on:submit|preventDefault={handleSubmit}>
+	<label>
+		username:
+		<input type="text" value={username} on:input={e => username = e.target.value} required />
+	</label>
+	<br />
+	<label>
+		Password:
+		<input type="password" value={password} on:input={e => password = e.target.value} required />
+	</label>
+	<br />
+	<button type="submit">Login</button>
+</form>
 
-<section>
-	<h1>
-		<span class="welcome">
-			<picture>
-				<source srcset={welcome} type="image/webp" />
-				<img src={welcome_fallback} alt="Welcome" />
-			</picture>
-		</span>
 
-		to your new<br />SvelteKit app
-	</h1>
+<form on:submit|preventDefault={handleRegister}>
 
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
-
-	<Counter />
-</section>
-
-<style>
-	section {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		flex: 0.6;
-	}
-
-	h1 {
-		width: 100%;
-	}
-
-	.welcome {
-		display: block;
-		position: relative;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
-	}
-
-	.welcome img {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		top: 0;
-		display: block;
-	}
-</style>
+	<br />
+	<button type="submit">Register</button>
+</form>
