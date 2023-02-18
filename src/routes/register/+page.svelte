@@ -8,7 +8,7 @@
     async function handleSubmit(event) {
         event.preventDefault();
         try {
-            const response = await fetch('https://secure-web-dev-backend-7x99.onrender.com//users/register', {
+            const response = await fetch('https://secure-web-dev-backend-7x99.onrender.com/users/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
